@@ -11,7 +11,7 @@ class MainTabBarController: UITabBarController {
     
     //MARK: - UI Properties
     
-    private let newsVC: NewsListViewController = NewsListViewController()
+    private let newsVC: NewsListViewController = NewsListViewController(viewModel: NewsListViewModel())
     private let bookmarksVC: BookmarksViewController = BookmarksViewController()
     
     private let newsNav: UINavigationController

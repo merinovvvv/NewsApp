@@ -132,12 +132,14 @@ final class NetworkService: NetworkServiceProtocol {
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 completion(.failure(.invalidResponse))
+                return
             }
             
             switch httpResponse.statusCode {
             case 200...299:
                 do {
                     let responseData = try JSONDecoder().decode(T.self, from: data)
+                    completion(.success(responseData))
                 } catch {
                     completion(.failure(.decodingError))
                 }

@@ -8,6 +8,8 @@
 import UIKit
 
 final class NewsCell: UITableViewCell {
+    
+    static let identifier: String = "NewsCell"
 
     override func awakeFromNib() {
         super.awakeFromNib()
