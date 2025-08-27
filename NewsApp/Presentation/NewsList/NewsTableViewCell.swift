@@ -15,7 +15,7 @@ final class NewsTableViewCell: UITableViewCell {
     
     static let identifier: String = "NewsCell"
     
-    private var article: Article!
+    private var viewModel: NewsCellViewModel!
     
     //MARK: - Constants
     
@@ -73,45 +73,26 @@ final class NewsTableViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         newsImageView.image = nil
-        newsImageView.isHidden = false
         titleLabel.text = nil
         sourceNameLabel.text = nil
         publishedDateLabel.text = nil
     }
     
-    func configure(with article: Article) {
-        self.article = article
+    func configure(with viewModel: NewsCellViewModel) {
+        self.viewModel = viewModel
         
-        titleLabel.text = article.title
-        sourceNameLabel.text = article.sourceName
-        publishedDateLabel.text = article.publishedAt.timeAgoDisplay()
+        titleLabel.text = viewModel.title
+        sourceNameLabel.text = viewModel.sourceName
+        publishedDateLabel.text = viewModel.publishedDateText
         
-        loadImage(from: article.urlToImage)
-    }
-    
-    func loadImage(from urlString: String?) {
-        newsImageView.image = nil
-        newsImageView.isHidden = true
+        newsImageView.image = viewModel.placeholderImage()
         
-        guard let urlString = article.urlToImage, let url = URL(string: urlString) else {
-            return
+        if let url = viewModel.imageURL {
+            ImageCacheManager.shared.loadImage(from: url) { [weak self] image in
+                guard let self else { return }
+                self.newsImageView.image = image ?? viewModel.placeholderImage()
+            }
         }
-        
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
-            guard let self else { return }
-            
-            var image: UIImage?
-            if let data, let downloadedImage = UIImage(data: data) {
-                image = downloadedImage
-            } else {
-                image = UIImage(systemName: "questionmark")
-            }
-            
-            DispatchQueue.main.async {
-                self.newsImageView.isHidden = false
-                self.newsImageView.image = image
-            }
-        }.resume()
     }
 }
 

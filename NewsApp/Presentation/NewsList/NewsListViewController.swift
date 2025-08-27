@@ -242,7 +242,8 @@ extension NewsListViewController: UITableViewDelegate, UITableViewDataSource {
         }
         
         let article = viewModel.articles[indexPath.row]
-        cell.configure(with: article)
+        let viewModel = NewsCellViewModel(article: article)
+        cell.configure(with: viewModel)
         return cell
     }
     
