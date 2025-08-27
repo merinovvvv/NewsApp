@@ -36,6 +36,7 @@ final class NewsTableViewCell: UITableViewCell {
         static let vStackContentSpacing: CGFloat = 8
         
         static let titleLabelFontSize: CGFloat = 17
+        static let descriptionLabelFontSize: CGFloat = 14
         
         static let infoStackContentSpacing: CGFloat = 4
         
@@ -52,6 +53,7 @@ final class NewsTableViewCell: UITableViewCell {
     
     private let vStack: UIStackView = UIStackView()
     private let titleLabel: UILabel = UILabel()
+    private let descriptionLabel: UILabel = UILabel()
     
     private let infoStack: UIStackView = UIStackView()
     private let sourceNameLabel: UILabel = UILabel()
@@ -76,6 +78,7 @@ final class NewsTableViewCell: UITableViewCell {
         titleLabel.text = nil
         sourceNameLabel.text = nil
         publishedDateLabel.text = nil
+        descriptionLabel.text = nil
     }
     
     func configure(with viewModel: NewsCellViewModel) {
@@ -84,6 +87,7 @@ final class NewsTableViewCell: UITableViewCell {
         titleLabel.text = viewModel.title
         sourceNameLabel.text = viewModel.sourceName
         publishedDateLabel.text = viewModel.publishedDateText
+        descriptionLabel.text = viewModel.description
         
         newsImageView.image = viewModel.placeholderImage()
         
@@ -111,6 +115,7 @@ private extension NewsTableViewCell {
         hStack.addArrangedSubview(vStack)
         
         vStack.addArrangedSubview(titleLabel)
+        vStack.addArrangedSubview(descriptionLabel)
         vStack.addArrangedSubview(infoStack)
         
         infoStack.addArrangedSubview(sourceNameLabel)
@@ -118,7 +123,7 @@ private extension NewsTableViewCell {
     }
     
     func setupConstraints() {
-        [hStack, newsImageView, vStack, titleLabel, infoStack, sourceNameLabel, publishedDateLabel].forEach( { $0.translatesAutoresizingMaskIntoConstraints = false })
+        [hStack, newsImageView, vStack, titleLabel, descriptionLabel, infoStack, sourceNameLabel, publishedDateLabel].forEach( { $0.translatesAutoresizingMaskIntoConstraints = false })
         
         NSLayoutConstraint.activate([
             hStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: Constants.hStackVerticalSpacing),
@@ -147,6 +152,10 @@ private extension NewsTableViewCell {
         titleLabel.numberOfLines = .zero
         titleLabel.font = .systemFont(ofSize: Constants.titleLabelFontSize, weight: .medium)
         titleLabel.textColor = .label
+        
+        descriptionLabel.numberOfLines = .zero
+        descriptionLabel.font = .systemFont(ofSize: Constants.descriptionLabelFontSize, weight: .medium)
+        descriptionLabel.textColor = .label
         
         infoStack.axis = .horizontal
         infoStack.alignment = .center

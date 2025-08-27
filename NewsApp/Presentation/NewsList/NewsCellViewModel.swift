@@ -17,6 +17,10 @@ final class NewsCellViewModel {
         article.title
     }
     
+    var description: String {
+        article.description ?? ""
+    }
+    
     var sourceName: String {
         article.sourceName
     }
