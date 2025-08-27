@@ -12,7 +12,7 @@ final class NewsListViewController: UIViewController {
     //MARK: - Properties
     
     private let viewModel: NewsListViewModel
-    private var selectedCategoryIndex = 0
+    private var selectedCategoryIndex = Constants.zero
     
     //MARK: - Constants
     
@@ -24,11 +24,24 @@ final class NewsListViewController: UIViewController {
         
         //MARK: - Values
         
+        static let zero: Int = 0
+        
+        static let activityIndicatorTag: Int = 999
+        
+        static let tableViewEstimatedHeightForRow: CGFloat = 120
+        
         static let interitemSpacing: CGFloat = 8
         static let lineSpacing: CGFloat = 8
         
         static let verticalEdgeSpacing: CGFloat = 8
-        static let HorizontalEdgeSpacing: CGFloat = 16
+        static let horizontalEdgeSpacing: CGFloat = 16
+        
+        static let scrollBottomSpacing: CGFloat = 200
+        
+        static let collectionViewCellTextFont: CGFloat = 14
+        static let collectionViewCellTextPadding: CGFloat = 20
+        static let collectionViewCellHeight: CGFloat = 32
+        static let minCollectionViewCellTextWidth: CGFloat = 70
         
     }
     
@@ -44,7 +57,7 @@ final class NewsListViewController: UIViewController {
         layout.minimumInteritemSpacing = Constants.interitemSpacing
         layout.minimumLineSpacing = Constants.lineSpacing
         
-        layout.sectionInset = UIEdgeInsets(top: Constants.verticalEdgeSpacing, left: Constants.HorizontalEdgeSpacing, bottom: Constants.verticalEdgeSpacing, right: Constants.HorizontalEdgeSpacing)
+        layout.sectionInset = UIEdgeInsets(top: Constants.verticalEdgeSpacing, left: Constants.horizontalEdgeSpacing, bottom: Constants.verticalEdgeSpacing, right: Constants.horizontalEdgeSpacing)
         
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         return collectionView
@@ -67,9 +80,86 @@ final class NewsListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        //setupBindings()
+        
+        setupBindings()
         setupUI()
+        
+        let initialCategory = NewsCategory.allCases[selectedCategoryIndex]
+        viewModel.selectCategory(initialCategory)
+        
+        
     }
+    
+    //MARK: - Private Methods
+    
+    private func setupBindings() {
+        viewModel.onArticlesUpdated = { [weak self] in
+            DispatchQueue.main.async {
+                self?.tableView.reloadData()
+                self?.refreshControl.endRefreshing()
+            }
+        }
+        
+        viewModel.onLoadingStateChanged = { [weak self] isLoading in
+            DispatchQueue.main.async {
+                if self?.refreshControl.isRefreshing == false {
+                    self?.showLoading(isLoading)
+                }
+            }
+        }
+        
+        viewModel.onError = { [weak self] error in
+            DispatchQueue.main.async {
+                self?.showError(error)
+                self?.refreshControl.endRefreshing()
+            }
+        }
+    }
+    
+    private func showLoading(_ isLoading: Bool) {
+        if isLoading {
+            let activityIndicator = UIActivityIndicatorView(style: .large)
+            activityIndicator.center = view.center
+            activityIndicator.tag = Constants.activityIndicatorTag
+            view.addSubview(activityIndicator)
+            activityIndicator.startAnimating()
+        } else {
+            view.viewWithTag(Constants.activityIndicatorTag)?.removeFromSuperview()
+        }
+    }
+    
+    private func showError(_ message: String) {
+        let alert = UIAlertController(
+            title: "Error",
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+    
+    private func selectCategory(at index: Int) {
+        let previousIndex = selectedCategoryIndex
+        selectedCategoryIndex = index
+        
+        var indexPathsToReload: [IndexPath] = []
+        if previousIndex < NewsCategory.allCases.count {
+            indexPathsToReload.append(IndexPath(item: previousIndex, section: .zero))
+        }
+        indexPathsToReload.append(IndexPath(item: selectedCategoryIndex, section: .zero))
+        
+        categoryCollectionView.reloadItems(at: indexPathsToReload)
+        
+        categoryCollectionView.scrollToItem(
+            at: IndexPath(item: selectedCategoryIndex, section: .zero),
+            at: .centeredHorizontally,
+            animated: true
+        )
+        
+        let category = NewsCategory.allCases[selectedCategoryIndex]
+        viewModel.selectCategory(category)
+    }
+    
 }
 
 //MARK: - Setup UI
@@ -107,7 +197,7 @@ private extension NewsListViewController {
     
     func configureViews() {
         tableView.refreshControl = refreshControl
-        tableView.register(NewsCell.self, forCellReuseIdentifier: NewsCell.identifier)
+        tableView.register(NewsTableViewCell.self, forCellReuseIdentifier: NewsTableViewCell.identifier)
         tableView.backgroundColor = .systemBackground
         tableView.showsVerticalScrollIndicator = false
         tableView.delegate = self
@@ -118,11 +208,6 @@ private extension NewsListViewController {
         categoryCollectionView.showsHorizontalScrollIndicator = false
         categoryCollectionView.delegate = self
         categoryCollectionView.dataSource = self
-        
-        categoryCollectionView.layer.shadowColor = UIColor.black.cgColor
-        categoryCollectionView.layer.shadowOffset = CGSize(width: 0, height: 1)
-        categoryCollectionView.layer.shadowRadius = 2
-        categoryCollectionView.layer.shadowOpacity = 0.1
         
         refreshControl.addTarget(self, action: #selector(refreshNews), for: .valueChanged)
         
@@ -138,23 +223,51 @@ private extension NewsListViewController {
 
 extension NewsListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        1
+        viewModel.articles.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: NewsCell.identifier, for: indexPath) as? NewsCell else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: NewsTableViewCell.identifier, for: indexPath) as? NewsTableViewCell else {
             return UITableViewCell()
         }
-        cell.backgroundColor = .red
+        
+        let article = viewModel.articles[indexPath.row]
+        cell.configure(with: article)
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let article = viewModel.articles[indexPath.row]
+        viewModel.onSelectArticle?(article)
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        UITableView.automaticDimension
+       }
+       
+       func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+           Constants.tableViewEstimatedHeightForRow
+       }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard scrollView == tableView else { return }
+        
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let height = scrollView.frame.size.height
+        
+        if offsetY > contentHeight - height - Constants.scrollBottomSpacing {
+            viewModel.loadMoreNewsIfNeeded()
+        }
     }
 }
 
 //MARK: - UICollectionViewDelegate, UICollectionViewDataSource
 
-extension NewsListViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+extension NewsListViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        20
+        return NewsCategory.allCases.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -162,8 +275,25 @@ extension NewsListViewController: UICollectionViewDelegate, UICollectionViewData
             return UICollectionViewCell()
         }
         
-        cell.backgroundColor = .blue
+        let category = NewsCategory.allCases[indexPath.item]
+        let isSelected = indexPath.item == selectedCategoryIndex
+        cell.configure(with: category, isSelected: isSelected)
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard indexPath.item != selectedCategoryIndex else { return }
+        selectCategory(at: indexPath.item)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let category = NewsCategory.allCases[indexPath.item]
+        let font = UIFont.systemFont(ofSize: Constants.collectionViewCellTextFont, weight: .medium)
+        let textWidth = category.displayName.size(withAttributes: [.font: font]).width
+        let cellWidth = textWidth + Constants.collectionViewCellTextPadding
+        let cellHeight: CGFloat = Constants.collectionViewCellHeight
+        
+        return CGSize(width: max(cellWidth, Constants.minCollectionViewCellTextWidth), height: cellHeight)
     }
 }
 
@@ -171,6 +301,6 @@ extension NewsListViewController: UICollectionViewDelegate, UICollectionViewData
 
 private extension NewsListViewController {
     @objc func refreshNews() {
-        
+        viewModel.refreshNews()
     }
 }

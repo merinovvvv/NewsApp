@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class NewsCell: UITableViewCell {
+final class NewsTableViewCell: UITableViewCell {
     
     static let identifier: String = "NewsCell"
 
@@ -21,5 +21,7 @@ final class NewsCell: UITableViewCell {
 
         // Configure the view for the selected state
     }
+    
+    func configure(with article: Article) {}
 
 }

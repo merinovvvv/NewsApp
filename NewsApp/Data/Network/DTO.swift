@@ -31,3 +31,18 @@ struct SourceDTO: Decodable {
     let id: String?
     let name: String
 }
+
+extension ArticleDTO {
+    func toDomain() -> Article {
+        Article(
+            title: title,
+            description: description ?? "",
+            content: content ?? "",
+            author: author ?? "",
+            url: url,
+            urlToImage: urlToImage ?? "",
+            publishedAt: publishedAt,
+            sourceName: source.name
+        )
+    }
+}

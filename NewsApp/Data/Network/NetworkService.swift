@@ -44,7 +44,7 @@ enum NetworkError: LocalizedError {
 }
 
 // MARK: - Network Configuration
-private enum APIConfiguration {
+enum APIConfiguration {
     static let scheme = "https"
     static let host = "newsapi.org/v2"
     static let apiKey = "a3ad2bcbab7a41eea6da776b5da4db2a"

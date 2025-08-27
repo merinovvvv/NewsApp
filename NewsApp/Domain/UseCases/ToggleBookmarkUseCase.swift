@@ -6,9 +6,9 @@
 //
 
 final class ToggleBookmarkUseCase {
-    private let repository: NewsRepository
+    private let repository: NewsRepositoryProtocol
     
-    init(repository: NewsRepository) {
+    init(repository: NewsRepositoryProtocol) {
         self.repository = repository
     }
     
