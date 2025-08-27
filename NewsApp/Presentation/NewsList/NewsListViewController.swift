@@ -36,7 +36,7 @@ final class NewsListViewController: UIViewController {
         static let verticalEdgeSpacing: CGFloat = 8
         static let horizontalEdgeSpacing: CGFloat = 16
         
-        static let scrollBottomSpacing: CGFloat = 200
+        static let scrollBottomSpacing: CGFloat = 50
         
         static let collectionViewCellTextFont: CGFloat = 14
         static let collectionViewCellTextPadding: CGFloat = 20

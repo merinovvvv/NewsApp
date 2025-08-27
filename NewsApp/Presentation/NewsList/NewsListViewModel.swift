@@ -18,6 +18,10 @@ final class NewsListViewModel {
     private var currentPage: Int = 1
     private var isLoading: Bool = false
     
+    private var lastLoadTime: Date = .distantPast
+    private let minLoadInterval: TimeInterval = 2.0
+    private var hasMorePages = true
+    
     // MARK: - Closures
     var onArticlesUpdated: (() -> Void)?
     var onError: ((String) -> Void)?
@@ -39,13 +43,28 @@ final class NewsListViewModel {
     }
     
     func selectCategory(_ category: NewsCategory) {
+        currentPage = 1
+        hasMorePages = true
+        lastLoadTime = .distantPast
+        
         guard category != currentCategory else { return }
         currentCategory = category
         loadInitialNews()
     }
     
     func loadMoreNewsIfNeeded() {
+        
+        let now = Date()
+        guard now.timeIntervalSince(lastLoadTime) >= minLoadInterval else {
+            return  // Exit early if not enough time has passed
+        }
+        
+        lastLoadTime = now
+        
         guard !isLoading else { return }
+        
+        guard hasMorePages else { return }
+        
         currentPage += 1
         fetchNews(category: currentCategory, page: currentPage, isRefreshing: false)
     }
