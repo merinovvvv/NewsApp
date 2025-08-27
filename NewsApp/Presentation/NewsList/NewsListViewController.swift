@@ -87,6 +87,8 @@ final class NewsListViewController: UIViewController {
         let initialCategory = NewsCategory.allCases[selectedCategoryIndex]
         viewModel.selectCategory(initialCategory)
         
+        viewModel.loadInitialNews()
+        
         
     }
     
@@ -129,6 +131,9 @@ final class NewsListViewController: UIViewController {
     }
     
     private func showError(_ message: String) {
+        
+        guard presentedViewController == nil else { return }
+        
         let alert = UIAlertController(
             title: "Error",
             message: message,
@@ -227,6 +232,11 @@ extension NewsListViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        guard indexPath.row < viewModel.articles.count else {
+            return UITableViewCell()
+        }
+        
         guard let cell = tableView.dequeueReusableCell(withIdentifier: NewsTableViewCell.identifier, for: indexPath) as? NewsTableViewCell else {
             return UITableViewCell()
         }

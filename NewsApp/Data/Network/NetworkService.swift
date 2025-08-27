@@ -46,7 +46,8 @@ enum NetworkError: LocalizedError {
 // MARK: - Network Configuration
 enum APIConfiguration {
     static let scheme = "https"
-    static let host = "newsapi.org/v2"
+    static let host = "newsapi.org"
+    static let basePath = "/v2"
     static let apiKey = "a3ad2bcbab7a41eea6da776b5da4db2a"
     static let defaultCountry = "us"
     static let pageSize = 20
@@ -59,9 +60,9 @@ enum NewsEndpoint {
     var path: String {
         switch self {
         case .topHeadlines:
-            return "/top-headlines"
+            return "\(APIConfiguration.basePath)/top-headlines"
         case .everything:
-            return "/everything"
+            return "\(APIConfiguration.basePath)/everything"
         }
     }
     
@@ -91,8 +92,10 @@ enum NewsEndpoint {
     var url: URL? {
         var urlComponents = URLComponents()
         urlComponents.scheme = APIConfiguration.scheme
+        urlComponents.host = APIConfiguration.host
         urlComponents.path = self.path
         urlComponents.queryItems = queryItems
+        
         return urlComponents.url
     }
 }
@@ -106,12 +109,13 @@ protocol NetworkServiceProtocol {
 
 final class NetworkService: NetworkServiceProtocol {
     func request<T: Decodable>(_ endpoint: NewsEndpoint,type: T.Type,completion: @escaping (Result<T, NetworkError>) -> Void) {
+        
         guard let url = endpoint.url else {
             completion(.failure(.invalidURL))
             return
         }
         
-        guard APIConfiguration.apiKey != "a3ad2bcbab7a41eea6da776b5da4db2a" else {
+        guard !APIConfiguration.apiKey.isEmpty else {
             completion(.failure(.apiKeyMissing))
             return
         }
@@ -127,6 +131,7 @@ final class NetworkService: NetworkServiceProtocol {
                     }
                     return
                 }
+                completion(.failure(.noData))
                 return
             }
             
@@ -138,7 +143,9 @@ final class NetworkService: NetworkServiceProtocol {
             switch httpResponse.statusCode {
             case 200...299:
                 do {
-                    let responseData = try JSONDecoder().decode(T.self, from: data)
+                    let decoder = JSONDecoder()
+                    decoder.dateDecodingStrategy = .iso8601
+                    let responseData = try decoder.decode(T.self, from: data)
                     completion(.success(responseData))
                 } catch {
                     completion(.failure(.decodingError))
@@ -153,8 +160,8 @@ final class NetworkService: NetworkServiceProtocol {
                 completion(.failure(.serverError(httpResponse.statusCode)))
                 return
             }
-           
-        }
+            
+        }.resume()
     }
 }
 
