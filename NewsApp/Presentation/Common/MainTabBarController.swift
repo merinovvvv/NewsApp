@@ -22,12 +22,13 @@ class MainTabBarController: UITabBarController {
     
     init() {
         let repository = NewsRepositoryImpl(apiService: NetworkService(), storage: CoreDataNewsStorage.shared)
-        let newsViewModel = NewsListViewModel(repository: repository)
-        self.newsVC = NewsListViewController(viewModel: newsViewModel)
-        self.bookmarksVC = BookmarksViewController()
+        let getNewsUseCase = GetNewsUseCase(repository: repository)
+        let newsViewModel = NewsListViewModel(getNewsUseCase: getNewsUseCase)
+        newsVC = NewsListViewController(viewModel: newsViewModel)
+        bookmarksVC = BookmarksViewController()
         
-        self.newsNav = UINavigationController(rootViewController: newsVC)
-        self.bookmarksNav = UINavigationController(rootViewController: bookmarksVC)
+        newsNav = UINavigationController(rootViewController: newsVC)
+        bookmarksNav = UINavigationController(rootViewController: bookmarksVC)
         
         super.init(nibName: nil, bundle: nil)
         
@@ -42,14 +43,6 @@ class MainTabBarController: UITabBarController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let repository = NewsRepositoryImpl(apiService: NetworkService(), storage: CoreDataNewsStorage.shared)
-        let newsViewModel = NewsListViewModel(repository: repository)
-        newsVC = NewsListViewController(viewModel: newsViewModel)
-        
-        bookmarksVC = BookmarksViewController()
-        
-        
         setupViewControllers()
     }
     

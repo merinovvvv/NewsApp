@@ -11,7 +11,8 @@ final class NewsListViewModel {
     
     // MARK: - Properties
     
-    private let repository: NewsRepositoryProtocol
+    private let getNewsUseCase: GetNewsUseCase
+    
     private(set) var articles: [Article] = []
     private var currentCategory: NewsCategory = .general
     private var currentPage: Int = 1
@@ -25,8 +26,8 @@ final class NewsListViewModel {
     var onSelectArticle: ((Article) -> Void)?
     
     // MARK: - Init
-    init(repository: NewsRepositoryProtocol) {
-        self.repository = repository
+    init(getNewsUseCase: GetNewsUseCase) {
+        self.getNewsUseCase = getNewsUseCase
     }
     
     // MARK: - Public Methods
@@ -86,7 +87,7 @@ final class NewsListViewModel {
         isLoading = true
         onLoadingStateChanged?(true)
         
-        repository.fetchNews(category: category, page: page) { [weak self] result in
+        getNewsUseCase.execute(category: category, page: page) { [weak self] result in
             guard let self else { return }
             DispatchQueue.main.async {
                 self.isLoading = false
