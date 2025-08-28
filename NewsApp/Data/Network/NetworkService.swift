@@ -7,42 +7,6 @@
 
 import Foundation
 
-// MARK: - Network Errors
-enum NetworkError: LocalizedError {
-    case invalidURL
-    case invalidResponse
-    case noData
-    case decodingError
-    case serverError(Int)
-    case apiKeyMissing
-    case rateLimitExceeded
-    case unknown(Error)
-    case noInternetConnection
-    
-    var errorDescription: String? {
-        switch self {
-        case .invalidURL:
-            return "Invalid URL"
-        case .invalidResponse:
-            return "Invalid response"
-        case .noData:
-            return "No data received"
-        case .decodingError:
-            return "Failed to decode response"
-        case .serverError(let code):
-            return "Server error: \(code)"
-        case .apiKeyMissing:
-            return "API key is missing"
-        case .rateLimitExceeded:
-            return "API rate limit exceeded"
-        case .unknown(let error):
-            return "Unknown error: \(error.localizedDescription)"
-        case .noInternetConnection:
-            return "No internet connection"
-        }
-    }
-}
-
 // MARK: - Network Configuration
 enum APIConfiguration {
     static let scheme = "https"
@@ -57,7 +21,7 @@ enum NewsEndpoint {
     case topHeadlines(category: NewsCategory, page: Int, country: String)
     case everything(query: String, page: Int)
     
-    var path: String {
+    private var path: String {
         switch self {
         case .topHeadlines:
             return "\(APIConfiguration.basePath)/top-headlines"
@@ -66,7 +30,7 @@ enum NewsEndpoint {
         }
     }
     
-    var queryItems: [URLQueryItem] {
+    private var queryItems: [URLQueryItem] {
         var items: [URLQueryItem] = [
             URLQueryItem(name: "apiKey", value: APIConfiguration.apiKey),
             URLQueryItem(name: "pageSize", value: String(APIConfiguration.pageSize))

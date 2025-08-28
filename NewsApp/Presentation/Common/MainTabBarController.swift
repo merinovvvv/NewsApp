@@ -21,9 +21,7 @@ class MainTabBarController: UITabBarController {
     //MARK: - Init
     
     init() {
-        let repository = NewsRepositoryImpl(apiService: NetworkService(), storage: CoreDataNewsStorage.shared)
-        let getNewsUseCase = GetNewsUseCase(repository: repository)
-        let newsViewModel = NewsListViewModel(getNewsUseCase: getNewsUseCase)
+        let newsViewModel = NewsListViewModel()
         newsVC = NewsListViewController(viewModel: newsViewModel)
         bookmarksVC = BookmarksViewController()
         

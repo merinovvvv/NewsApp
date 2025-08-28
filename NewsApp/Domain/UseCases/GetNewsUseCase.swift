@@ -8,7 +8,7 @@
 final class GetNewsUseCase {
     private let repository: NewsRepositoryProtocol
 
-    init(repository: NewsRepositoryProtocol) {
+    init(repository: NewsRepositoryProtocol = NewsRepositoryImpl()) {
         self.repository = repository
     }
 

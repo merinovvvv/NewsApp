@@ -116,6 +116,13 @@ final class NewsListViewController: UIViewController {
                 self?.refreshControl.endRefreshing()
             }
         }
+        
+        viewModel.onSelectArticle = { [weak self] article in
+            let vc = NewsDetailViewController(viewModel: NewsDetailViewModel(article: article))
+            DispatchQueue.main.async {
+                self?.navigationController?.pushViewController(vc, animated: true)
+            }
+        }
     }
     
     private func showLoading(_ isLoading: Bool) {
@@ -255,11 +262,11 @@ extension NewsListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         UITableView.automaticDimension
-       }
-       
-       func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
-           Constants.tableViewEstimatedHeightForRow
-       }
+    }
+    
+    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+        Constants.tableViewEstimatedHeightForRow
+    }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView == tableView else { return }

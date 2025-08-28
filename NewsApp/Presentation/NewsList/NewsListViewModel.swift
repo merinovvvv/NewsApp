@@ -26,11 +26,11 @@ final class NewsListViewModel {
     var onArticlesUpdated: (() -> Void)?
     var onError: ((String) -> Void)?
     var onLoadingStateChanged: ((Bool) -> Void)?
-    //TODO: - select article
+    
     var onSelectArticle: ((Article) -> Void)?
     
     // MARK: - Init
-    init(getNewsUseCase: GetNewsUseCase) {
+    init(getNewsUseCase: GetNewsUseCase = GetNewsUseCase()) {
         self.getNewsUseCase = getNewsUseCase
     }
     

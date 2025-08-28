@@ -8,6 +8,15 @@
 import Foundation
 
 extension Date {
+    
+    func detailedDateDisplay() -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        formatter.timeStyle = .short
+        formatter.locale = Locale.current
+        return formatter.string(from: self)
+    }
+    
     func timeAgoDisplay() -> String {
         let secondsAgo = Int(Date().timeIntervalSince(self))
         
