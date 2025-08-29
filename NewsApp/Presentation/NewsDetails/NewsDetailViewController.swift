@@ -13,6 +13,7 @@ final class NewsDetailViewController: UIViewController {
     
     private let viewModel: NewsDetailViewModel
     private let bookmarksViewModel: BookmarksViewModel
+    private var isInitialLoad: Bool = true
     
     
     //MARK: - Constants
@@ -86,7 +87,8 @@ final class NewsDetailViewController: UIViewController {
         
         viewModel.onBookmarkStatusChanged = { [weak self] isBookmarked in
             DispatchQueue.main.async {
-                self?.updateBookmarkButton(isBookmarked: isBookmarked)
+                self?.updateBookmarkButton(isBookmarked: isBookmarked, animated: !(self?.isInitialLoad ?? true))
+                self?.isInitialLoad = false
                 
             }
         }
@@ -113,13 +115,9 @@ final class NewsDetailViewController: UIViewController {
                 self.articleImageView.image = image ?? self.viewModel.placeholderImage()
             }
         }
-        
-        updateBookmarkButton(isBookmarked: viewModel.isBookmarked)
     }
     
-    //TODO: - Get rid of flash
-    
-    private func updateBookmarkButton(isBookmarked: Bool) {
+    private func updateBookmarkButton(isBookmarked: Bool, animated: Bool) {
         let title = isBookmarked ? "Remove from Bookmarks" : "Add to Bookmarks"
         let imageName = isBookmarked ? "bookmark.fill" : "bookmark"
         let backgroundColor: UIColor = isBookmarked ? .systemRed : .systemBlue
@@ -134,14 +132,17 @@ final class NewsDetailViewController: UIViewController {
         bookmarkButton.configurationUpdateHandler = { button in
             if button.isHighlighted {
                 button.backgroundColor = backgroundColor.withAlphaComponent(0.5)
-            } else {
-                button.backgroundColor = backgroundColor
             }
         }
         
-        UIView.animate(withDuration: 0.3) {
-            self.bookmarkButton.backgroundColor = backgroundColor
-            self.bookmarkButton.configuration = newConfig
+        if animated {
+            UIView.animate(withDuration: 0.3) {
+                self.bookmarkButton.backgroundColor = backgroundColor
+                self.bookmarkButton.configuration = newConfig
+            }
+        } else {
+            bookmarkButton.configuration = newConfig
+            bookmarkButton.backgroundColor = backgroundColor
         }
     }
     

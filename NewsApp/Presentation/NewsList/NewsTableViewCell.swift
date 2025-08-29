@@ -42,6 +42,8 @@ final class NewsTableViewCell: UITableViewCell {
         
         static let infoStackLabelsFontSize: CGFloat = 13
         
+        static let separatorLabelFont: CGFloat = 14
+        
         
     }
     
@@ -57,6 +59,7 @@ final class NewsTableViewCell: UITableViewCell {
     
     private let infoStack: UIStackView = UIStackView()
     private let sourceNameLabel: UILabel = UILabel()
+    private let separatorLabel: UILabel = UILabel()
     private let publishedDateLabel: UILabel = UILabel()
     
     //MARK: - Init
@@ -119,6 +122,7 @@ private extension NewsTableViewCell {
         vStack.addArrangedSubview(infoStack)
         
         infoStack.addArrangedSubview(sourceNameLabel)
+        infoStack.addArrangedSubview(separatorLabel)
         infoStack.addArrangedSubview(publishedDateLabel)
     }
     
@@ -163,6 +167,10 @@ private extension NewsTableViewCell {
         
         sourceNameLabel.font = .systemFont(ofSize: Constants.infoStackLabelsFontSize, weight: .regular)
         sourceNameLabel.textColor = .secondaryLabel
+        
+        separatorLabel.text = "•"
+        separatorLabel.font = .systemFont(ofSize: Constants.separatorLabelFont)
+        separatorLabel.textColor = .secondaryLabel
         
         publishedDateLabel.textColor = .secondaryLabel
         publishedDateLabel.font = .systemFont(ofSize: Constants.infoStackLabelsFontSize, weight: .regular)

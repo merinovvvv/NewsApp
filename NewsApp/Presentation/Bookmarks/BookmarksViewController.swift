@@ -5,6 +5,8 @@
 //  Created by Yaroslav Merinov on 26.08.25.
 //
 
+//TODO: - Simultaneous delete in News and Bookmarks error
+
 import UIKit
 
 final class BookmarksViewController: UIViewController {
@@ -19,19 +21,22 @@ final class BookmarksViewController: UIViewController {
         
         static let tableViewEstimatedHeightForRow: CGFloat = 120
         
+        static let noBookmarksLabelFontSize: CGFloat = 17
+        
     }
     
     //MARK: - UI Properties
     
     private let tableView: UITableView = UITableView()
+    private let noBookmarksLabel: UILabel = UILabel()
     
     //MARK: - LifeCycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        setupBindings()
         setupUI()
+        setupBindings()
         
         viewModel.loadBookmarks()
     }
@@ -51,8 +56,19 @@ final class BookmarksViewController: UIViewController {
     
     func setupBindings() {
         viewModel.onBookrmarksUpdated = { [weak self] in
-            self?.tableView.reloadData()
+            
+            guard let self else { return }
+            
+            if self.viewModel.articles.count == 0 {
+                self.noBookmarksLabel.isHidden = false
+            } else {
+                self.noBookmarksLabel.isHidden = true
+            }
+            
+            self.tableView.reloadData()
         }
+        
+        //TODO: - Same logic as in NewsListViewController
         
         viewModel.onError = { [weak self] errorMessage in
             guard self?.presentedViewController == nil else { return }
@@ -89,16 +105,21 @@ private extension BookmarksViewController {
     
     func setupViewHierarchy() {
         view.addSubview(tableView)
+        view.addSubview(noBookmarksLabel)
     }
     
     func setupConstraints() {
         tableView.translatesAutoresizingMaskIntoConstraints = false
+        noBookmarksLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            
+            noBookmarksLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            noBookmarksLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
     
@@ -108,6 +129,13 @@ private extension BookmarksViewController {
         tableView.showsVerticalScrollIndicator = false
         tableView.delegate = self
         tableView.dataSource = self
+        
+        noBookmarksLabel.isHidden = true
+        noBookmarksLabel.text = "Your bookmarks will appear here"
+        noBookmarksLabel.font = .systemFont(ofSize: Constants.noBookmarksLabelFontSize, weight: .medium)
+        noBookmarksLabel.textColor = .secondaryLabel
+        noBookmarksLabel.textAlignment = .center
+        noBookmarksLabel.numberOfLines = .zero
     }
 }
 
@@ -146,5 +174,28 @@ extension BookmarksViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
         Constants.tableViewEstimatedHeightForRow
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            viewModel.removeArticle(at: indexPath.row) { [weak self] result in
+                
+                guard let self else { return }
+                
+                switch result {
+                case .success:
+                    tableView.deleteRows(at: [indexPath], with: .automatic)
+                    
+                    if self.viewModel.articles.count == 0 {
+                        self.noBookmarksLabel.isHidden = false
+                    } else {
+                        self.noBookmarksLabel.isHidden = true
+                    }
+                    
+                case .failure(let error):
+                    self.viewModel.onError?(error.localizedDescription)
+                }
+            }
+        }
     }
 }

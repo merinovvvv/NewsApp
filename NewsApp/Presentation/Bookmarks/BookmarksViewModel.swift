@@ -42,4 +42,30 @@ final class BookmarksViewModel {
             }
         }
     }
+    
+    func removeArticle(at index: Int, completion: @escaping (Result<Void, StorageError>) -> Void) {
+        guard index < articles.count else {
+            completion(.failure(.deleteFailed))
+            return
+        }
+
+        let article = articles[index]
+        bookmarkUseCase.removeFromBookmarks(article: article) { [weak self] result in
+            guard let self else {
+                return
+            }
+
+            switch result {
+            case .success:
+                self.articles.remove(at: index)
+                DispatchQueue.main.async {
+                    completion(.success(()))
+                }
+            case .failure:
+                DispatchQueue.main.async {
+                    completion(.failure(.deleteFailed))
+                }
+            }
+        }
+    }
 }
