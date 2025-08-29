@@ -12,6 +12,8 @@ final class NewsDetailViewController: UIViewController {
     //MARK: - Properties
     
     private let viewModel: NewsDetailViewModel
+    private let bookmarksViewModel: BookmarksViewModel
+    
     
     //MARK: - Constants
     
@@ -63,8 +65,9 @@ final class NewsDetailViewController: UIViewController {
     
     //MARK: - Init
     
-    init(viewModel: NewsDetailViewModel) {
+    init(viewModel: NewsDetailViewModel, bookmarksViewModel: BookmarksViewModel) {
         self.viewModel = viewModel
+        self.bookmarksViewModel = bookmarksViewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -84,6 +87,7 @@ final class NewsDetailViewController: UIViewController {
         viewModel.onBookmarkStatusChanged = { [weak self] isBookmarked in
             DispatchQueue.main.async {
                 self?.updateBookmarkButton(isBookmarked: isBookmarked)
+                
             }
         }
         
@@ -113,7 +117,7 @@ final class NewsDetailViewController: UIViewController {
         updateBookmarkButton(isBookmarked: viewModel.isBookmarked)
     }
     
-    //TODO: - Make animation better
+    //TODO: - Get rid of flash
     
     private func updateBookmarkButton(isBookmarked: Bool) {
         let title = isBookmarked ? "Remove from Bookmarks" : "Add to Bookmarks"
@@ -128,19 +132,17 @@ final class NewsDetailViewController: UIViewController {
         newConfig.baseForegroundColor = .white
         
         bookmarkButton.configurationUpdateHandler = { button in
-            let updatedConfig = button.configuration
             if button.isHighlighted {
                 button.backgroundColor = backgroundColor.withAlphaComponent(0.5)
             } else {
                 button.backgroundColor = backgroundColor
             }
-            button.configuration = updatedConfig
         }
         
-        UIView.animate(withDuration: 0.3, animations: {
-            self.bookmarkButton.configuration = newConfig
+        UIView.animate(withDuration: 0.3) {
             self.bookmarkButton.backgroundColor = backgroundColor
-        })
+            self.bookmarkButton.configuration = newConfig
+        }
     }
     
     private func showError(_ message: String) {
@@ -280,6 +282,7 @@ private extension NewsDetailViewController {
 private extension NewsDetailViewController {
     @objc private func bookmarkButtonTapped() {
         viewModel.toggleBookmark()
+        bookmarksViewModel.loadBookmarks()
     }
     
     @objc private func shareButtonTapped() {

@@ -85,15 +85,16 @@ final class CoreDataNewsStorage {
     // MARK: - Fetch All Bookmarks
     func getAllBookmarks(completion: @escaping (Result<[Article], StorageError>) -> Void) {
         let fetchRequest: NSFetchRequest<BookmarkArticle> = BookmarkArticle.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "publishedAt", ascending: false)]
         
         do {
             let results = try context.fetch(fetchRequest)
             let articles = results.map { entity in
                 Article(
                     title: entity.title ?? "",
-                    description: entity.author,
-                    content: entity.articleDescription,
-                    author: entity.content,
+                    description: entity.articleDescription,
+                    content: entity.content ?? "",
+                    author: entity.author,
                     url: entity.url ?? "",
                     urlToImage: entity.urlToImage,
                     publishedAt: entity.publishedAt ?? Date(),

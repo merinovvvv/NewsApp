@@ -10,11 +10,9 @@ import Foundation
 final class NewsRepositoryImpl: NewsRepositoryProtocol {
     
     private let apiService: NetworkServiceProtocol
-    private let storage: CoreDataNewsStorage
     
-    init(apiService: NetworkServiceProtocol = NetworkService(), storage: CoreDataNewsStorage = .shared) {
+    init(apiService: NetworkServiceProtocol = NetworkService()) {
         self.apiService = apiService
-        self.storage = storage
     }
     
     // MARK: - News Fetching
@@ -33,39 +31,6 @@ final class NewsRepositoryImpl: NewsRepositoryProtocol {
                 completion(.success(articles))
             case .failure(let error):
                 completion(.failure(error))
-            }
-        }
-    }
-    
-    // MARK: - Bookmark Operations
-    func saveBookmark(article: Article, completion: @escaping (Result<Void, StorageError>) -> Void) {
-        storage.saveBookmark(article: article) { result in
-            DispatchQueue.main.async {
-                completion(result)
-            }
-        }
-    }
-    
-    func removeBookmark(article: Article, completion: @escaping (Result<Void, StorageError>) -> Void) {
-        storage.removeBookmark(article: article) { result in
-            DispatchQueue.main.async {
-                completion(result)
-            }
-        }
-    }
-    
-    func isBookmarked(article: Article, completion: @escaping (Result<Bool, StorageError>) -> Void) {
-        storage.isBookmarked(article: article) { result in
-            DispatchQueue.main.async {
-                completion(result)
-            }
-        }
-    }
-    
-    func getAllBookmarks(completion: @escaping (Result<[Article], StorageError>) -> Void) {
-        storage.getAllBookmarks { result in
-            DispatchQueue.main.async {
-                completion(result)
             }
         }
     }

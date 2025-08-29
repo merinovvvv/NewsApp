@@ -56,7 +56,7 @@ final class NewsListViewModel {
         
         let now = Date()
         guard now.timeIntervalSince(lastLoadTime) >= minLoadInterval else {
-            return  // Exit early if not enough time has passed
+            return
         }
         
         lastLoadTime = now
@@ -72,34 +72,7 @@ final class NewsListViewModel {
     func refreshNews() {
         loadInitialNews()
     }
-//    
-//    func toggleBookmark(for article: Article) {
-//        repository.toggleBookmark(article: article) { [weak self] result in
-//            DispatchQueue.main.async {
-//                switch result {
-//                case .success:
-//                    self?.fetchBookmarks()
-//                case .failure(let error):
-//                    self?.onError?(error.localizedDescription)
-//                }
-//            }
-//        }
-//    }
-//    
-//    func fetchBookmarks() {
-//        repository.getBookmarks { [weak self] result in
-//            DispatchQueue.main.async {
-//                switch result {
-//                case .success(let bookmarks):
-//                    self?.articles = bookmarks
-//                    self?.onArticlesUpdated?()
-//                case .failure(let error):
-//                    self?.onError?(error.localizedDescription)
-//                }
-//            }
-//        }
-//    }
-    
+
     // MARK: - Private Methods
     
     private func fetchNews(category: NewsCategory, page: Int, isRefreshing: Bool) {

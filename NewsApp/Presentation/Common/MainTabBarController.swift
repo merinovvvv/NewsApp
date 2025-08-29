@@ -22,8 +22,9 @@ class MainTabBarController: UITabBarController {
     
     init() {
         let newsViewModel = NewsListViewModel()
-        newsVC = NewsListViewController(viewModel: newsViewModel)
-        bookmarksVC = BookmarksViewController()
+        let bookmarksViewModel = BookmarksViewModel()
+        newsVC = NewsListViewController(viewModel: newsViewModel, bookmarksViewModel: bookmarksViewModel)
+        bookmarksVC = BookmarksViewController(viewModel: bookmarksViewModel)
         
         newsNav = UINavigationController(rootViewController: newsVC)
         bookmarksNav = UINavigationController(rootViewController: bookmarksVC)

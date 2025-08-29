@@ -12,6 +12,7 @@ final class NewsListViewController: UIViewController {
     //MARK: - Properties
     
     private let viewModel: NewsListViewModel
+    private let bookmarksViewModel: BookmarksViewModel
     private var selectedCategoryIndex = Constants.zero
     
     //MARK: - Constants
@@ -65,8 +66,9 @@ final class NewsListViewController: UIViewController {
     
     //MARK: - Init
     
-    init(viewModel: NewsListViewModel) {
+    init(viewModel: NewsListViewModel, bookmarksViewModel: BookmarksViewModel) {
         self.viewModel = viewModel
+        self.bookmarksViewModel = bookmarksViewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -118,9 +120,12 @@ final class NewsListViewController: UIViewController {
         }
         
         viewModel.onSelectArticle = { [weak self] article in
-            let vc = NewsDetailViewController(viewModel: NewsDetailViewModel(article: article))
+            
+            guard let self else { return }
+            
+            let vc = NewsDetailViewController(viewModel: NewsDetailViewModel(article: article), bookmarksViewModel: self.bookmarksViewModel)
             DispatchQueue.main.async {
-                self?.navigationController?.pushViewController(vc, animated: true)
+                self.navigationController?.pushViewController(vc, animated: true)
             }
         }
     }

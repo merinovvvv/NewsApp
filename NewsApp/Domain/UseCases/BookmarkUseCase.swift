@@ -9,9 +9,9 @@ import Foundation
 
 final class BookmarkUseCase {
     
-    private let repository: NewsRepositoryProtocol
+    private let repository: BookmarksRepositoryProtocol
     
-    init(repository: NewsRepositoryProtocol = NewsRepositoryImpl()) {
+    init(repository: BookmarksRepositoryProtocol = BookmarksRepositoryImpl()) {
         self.repository = repository
     }
     
