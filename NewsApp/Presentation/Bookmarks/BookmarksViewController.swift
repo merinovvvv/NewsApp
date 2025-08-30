@@ -14,6 +14,7 @@ final class BookmarksViewController: UIViewController {
     //MARK: - Properties
     
     private let viewModel: BookmarksViewModel
+    private var currentSearchQuery: String = ""
     
     //MARK: - Constants
     
@@ -29,6 +30,7 @@ final class BookmarksViewController: UIViewController {
     
     private let tableView: UITableView = UITableView()
     private let noBookmarksLabel: UILabel = UILabel()
+    private let searchController = UISearchController()
     
     //MARK: - LifeCycle
     
@@ -40,6 +42,11 @@ final class BookmarksViewController: UIViewController {
         
         viewModel.loadBookmarks()
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            viewModel.loadBookmarks()
+        }
     
     //MARK: - Init
     
@@ -60,6 +67,7 @@ final class BookmarksViewController: UIViewController {
             guard let self else { return }
             
             if self.viewModel.articles.count == 0 {
+                self.updateNoBookmarksMessage()
                 self.noBookmarksLabel.isHidden = false
             } else {
                 self.noBookmarksLabel.isHidden = true
@@ -93,6 +101,14 @@ final class BookmarksViewController: UIViewController {
             }
         }
     }
+    
+    private func updateNoBookmarksMessage() {
+        if searchController.isActive && !currentSearchQuery.isEmpty {
+            noBookmarksLabel.text = "No bookmarks found for '\(currentSearchQuery)'"
+        } else {
+            noBookmarksLabel.text = "Your bookmarks will appear here"
+        }
+    }
 }
 
 //MARK: - Setup UI
@@ -124,6 +140,9 @@ private extension BookmarksViewController {
     }
     
     func configureViews() {
+        
+        configureSearchController()
+        
         tableView.register(NewsTableViewCell.self, forCellReuseIdentifier: NewsTableViewCell.identifier)
         tableView.backgroundColor = .systemBackground
         tableView.showsVerticalScrollIndicator = false
@@ -136,6 +155,19 @@ private extension BookmarksViewController {
         noBookmarksLabel.textColor = .secondaryLabel
         noBookmarksLabel.textAlignment = .center
         noBookmarksLabel.numberOfLines = .zero
+    }
+    
+    private func configureSearchController() {
+        searchController.searchResultsUpdater = self
+        searchController.delegate = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchBar.placeholder = "Search bookmarks"
+        searchController.searchBar.delegate = self
+        
+        navigationItem.searchController = searchController
+        definesPresentationContext = false
+        navigationItem.hidesSearchBarWhenScrolling = false
     }
 }
 
@@ -197,5 +229,28 @@ extension BookmarksViewController: UITableViewDelegate, UITableViewDataSource {
                 }
             }
         }
+    }
+}
+
+//MARK: - UISearchResultsUpdating, UISearchControllerDelegate, UISearchBarDelegate
+
+extension BookmarksViewController: UISearchResultsUpdating, UISearchControllerDelegate, UISearchBarDelegate {
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let searchText = searchController.searchBar.text else { return }
+        
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(performSearch), object: nil)
+        perform(#selector(performSearch), with: nil, afterDelay: 0.3)
+        
+        currentSearchQuery = searchText
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        currentSearchQuery = ""
+        viewModel.cancelSearch()
+    }
+    
+    @objc private func performSearch() {
+        viewModel.searchBookmarks(with: currentSearchQuery)
     }
 }

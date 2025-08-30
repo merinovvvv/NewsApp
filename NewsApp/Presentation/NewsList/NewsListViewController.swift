@@ -14,6 +14,7 @@ final class NewsListViewController: UIViewController {
     private let viewModel: NewsListViewModel
     private let bookmarksViewModel: BookmarksViewModel
     private var selectedCategoryIndex = Constants.zero
+    private var currentSearchQuery: String = ""
     
     //MARK: - Constants
     
@@ -51,6 +52,8 @@ final class NewsListViewController: UIViewController {
     private let tableView: UITableView = UITableView()
     
     private let refreshControl: UIRefreshControl = UIRefreshControl()
+    
+    private let searchController = UISearchController()
     
     private lazy var categoryCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -90,8 +93,6 @@ final class NewsListViewController: UIViewController {
         viewModel.selectCategory(initialCategory)
         
         viewModel.loadInitialNews()
-        
-        
     }
     
     //MARK: - Private Methods
@@ -173,10 +174,19 @@ final class NewsListViewController: UIViewController {
             animated: true
         )
         
+        clearSearchController()
+        
         let category = NewsCategory.allCases[selectedCategoryIndex]
         viewModel.selectCategory(category)
     }
     
+    private func clearSearchController() {
+        
+        if searchController.isActive {
+            searchController.searchBar.text = ""
+            currentSearchQuery = ""
+        }
+    }
 }
 
 //MARK: - Setup UI
@@ -213,6 +223,9 @@ private extension NewsListViewController {
     }
     
     func configureViews() {
+        
+        configureSearchController()
+        
         tableView.refreshControl = refreshControl
         tableView.register(NewsTableViewCell.self, forCellReuseIdentifier: NewsTableViewCell.identifier)
         tableView.backgroundColor = .systemBackground
@@ -233,6 +246,19 @@ private extension NewsListViewController {
             target: self,
             action: #selector(refreshNews)
         )
+    }
+    
+    private func configureSearchController() {
+        searchController.searchResultsUpdater = self
+        searchController.delegate = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchBar.placeholder = "Search articles"
+        searchController.searchBar.delegate = self
+        
+        navigationItem.searchController = searchController
+        definesPresentationContext = false
+        navigationItem.hidesSearchBarWhenScrolling = false
     }
 }
 
@@ -320,10 +346,34 @@ extension NewsListViewController: UICollectionViewDelegate, UICollectionViewData
     }
 }
 
+//MARK: - UISearchResultsUpdating, UISearchControllerDelegate, UISearchBarDelegate
+
+extension NewsListViewController: UISearchResultsUpdating, UISearchControllerDelegate, UISearchBarDelegate {
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let searchText = searchController.searchBar.text else { return }
+        
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(performSearch), object: nil)
+        perform(#selector(performSearch), with: nil, afterDelay: 0.3)
+        
+        currentSearchQuery = searchText
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        viewModel.cancelSearch()
+    }
+    
+    @objc private func performSearch() {
+        viewModel.searchArticles(with: currentSearchQuery)
+    }
+}
+
 //MARK: - Selectors
 
 private extension NewsListViewController {
     @objc func refreshNews() {
+        
+        clearSearchController()
         viewModel.refreshNews()
     }
 }
