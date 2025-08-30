@@ -37,7 +37,7 @@ extension ArticleDTO {
         Article(
             title: title,
             description: description ?? "",
-            content: content ?? "",
+            content: content?.htmlDecoded,
             author: author ?? "",
             url: url,
             urlToImage: urlToImage ?? "",
