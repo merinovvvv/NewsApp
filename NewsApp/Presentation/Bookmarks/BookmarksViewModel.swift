@@ -48,16 +48,23 @@ final class BookmarksViewModel {
             completion(.failure(.deleteFailed))
             return
         }
-
+        
         let article = articles[index]
         bookmarkUseCase.removeFromBookmarks(article: article) { [weak self] result in
             guard let self else {
                 return
             }
-
+            
             switch result {
             case .success:
                 self.articles.remove(at: index)
+                
+                NotificationCenter.default.post(
+                    name: .bookmarkStatusChanged,
+                    object: nil,
+                    userInfo: ["article": article, "isBookmarked": false]
+                )
+                
                 DispatchQueue.main.async {
                     completion(.success(()))
                 }

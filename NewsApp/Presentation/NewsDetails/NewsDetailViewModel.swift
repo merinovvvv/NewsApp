@@ -5,13 +5,6 @@
 //  Created by Yaroslav Merinov on 26.08.25.
 //
 
-//
-//  NewsDetailViewModel.swift
-//  NewsApp
-//
-//  Created by Yaroslav Merinov on 28.08.25.
-//
-
 import Foundation
 import UIKit
 
@@ -73,6 +66,11 @@ final class NewsDetailViewModel {
     init(article: Article, bookmarkUseCase: BookmarkUseCase = BookmarkUseCase()) {
         self.article = article
         self.bookmarkUseCase = bookmarkUseCase
+        setupNotificationObservers()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: - Public Methods
@@ -96,6 +94,30 @@ final class NewsDetailViewModel {
     
     // MARK: - Private Methods
     
+    private func setupNotificationObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleBookmarkStatusChanged),
+            name: .bookmarkStatusChanged,
+            object: nil
+        )
+    }
+    
+    @objc private func handleBookmarkStatusChanged(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let notificationArticle = userInfo["article"] as? Article,
+              let isBookmarked = userInfo["isBookmarked"] as? Bool else { return }
+        
+        if articlesAreEqual(notificationArticle, article) {
+            self.isBookmarked = isBookmarked
+            onBookmarkStatusChanged?(isBookmarked)
+        }
+    }
+    
+    private func articlesAreEqual(_ article1: Article, _ article2: Article) -> Bool {
+        return article1.url == article2.url
+    }
+    
     private func checkBookmarkStatus() {
         bookmarkUseCase.isBookmarked(article: article) { [weak self] result in
             DispatchQueue.main.async {
@@ -117,6 +139,11 @@ final class NewsDetailViewModel {
                 case .success:
                     self?.isBookmarked = true
                     self?.onBookmarkStatusChanged?(true)
+                    NotificationCenter.default.post(
+                        name: .bookmarkStatusChanged,
+                        object: nil,
+                        userInfo: ["article": self?.article as Any, "isBookmarked": true]
+                    )
                 case .failure(let error):
                     self?.onError?("Failed to add bookmark: \(error.localizedDescription)")
                 }
@@ -131,6 +158,11 @@ final class NewsDetailViewModel {
                 case .success:
                     self?.isBookmarked = false
                     self?.onBookmarkStatusChanged?(false)
+                    NotificationCenter.default.post(
+                        name: .bookmarkStatusChanged,
+                        object: nil,
+                        userInfo: ["article": self?.article as Any, "isBookmarked": false]
+                    )
                 case .failure(let error):
                     self?.onError?("Failed to remove bookmark: \(error.localizedDescription)")
                 }
