@@ -11,9 +11,11 @@ final class ImageCacheManager {
     
     //MARK: - Properties
     
-    static let shared = ImageCacheManager(); private init() { }
+    static let shared = ImageCacheManager()
     
     private let cache = NSCache<NSURL, UIImage>()
+    
+    private init() { }
     
     // MARK: - Public Methods
     
