@@ -44,7 +44,6 @@ final class NewsListViewController: UIViewController {
         static let collectionViewCellTextPadding: CGFloat = 20
         static let collectionViewCellHeight: CGFloat = 32
         static let minCollectionViewCellTextWidth: CGFloat = 70
-        
     }
     
     //MARK: - UI Properties

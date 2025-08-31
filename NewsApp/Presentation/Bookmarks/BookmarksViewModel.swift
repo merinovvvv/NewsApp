@@ -18,7 +18,7 @@ final class BookmarksViewModel {
     private var currentSearchQuery: String = ""
     
     // MARK: - Closures
-    var onBookrmarksUpdated: (() -> Void)?
+    var onBookmarksUpdated: (() -> Void)?
     var onError: ((String) -> Void)?
     var onSelectArticle: ((Article) -> Void)?
     
@@ -42,7 +42,7 @@ final class BookmarksViewModel {
                 }
                 
                 DispatchQueue.main.async {
-                    self.onBookrmarksUpdated?()
+                    self.onBookmarksUpdated?()
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
@@ -102,14 +102,14 @@ final class BookmarksViewModel {
             filterArticles()
         }
         
-        onBookrmarksUpdated?()
+        onBookmarksUpdated?()
     }
     
     func cancelSearch() {
         isSearching = false
         currentSearchQuery = ""
         articles = allArticles
-        onBookrmarksUpdated?()
+        onBookmarksUpdated?()
     }
     
     // MARK: - Private Methods

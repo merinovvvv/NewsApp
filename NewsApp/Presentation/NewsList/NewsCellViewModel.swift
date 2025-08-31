@@ -13,6 +13,11 @@ final class NewsCellViewModel {
     // MARK: - Properties
     private let article: Article
     
+    // MARK: - Init
+    init(article: Article) {
+        self.article = article
+    }
+    
     var title: String {
         article.title
     }
@@ -32,11 +37,6 @@ final class NewsCellViewModel {
     var imageURL: URL? {
         guard let urlString = article.urlToImage else { return nil }
         return URL(string: urlString)
-    }
-    
-    // MARK: - Init
-    init(article: Article) {
-        self.article = article
     }
     
     // MARK: - Optional Helpers

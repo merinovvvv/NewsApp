@@ -5,8 +5,6 @@
 //  Created by Yaroslav Merinov on 26.08.25.
 //
 
-//TODO: - Simultaneous delete in News and Bookmarks error
-
 import UIKit
 
 final class BookmarksViewController: UIViewController {
@@ -44,9 +42,9 @@ final class BookmarksViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-            super.viewWillAppear(animated)
-            viewModel.loadBookmarks()
-        }
+        super.viewWillAppear(animated)
+        viewModel.loadBookmarks()
+    }
     
     //MARK: - Init
     
@@ -62,7 +60,7 @@ final class BookmarksViewController: UIViewController {
     //MARK: - Private Methods
     
     func setupBindings() {
-        viewModel.onBookrmarksUpdated = { [weak self] in
+        viewModel.onBookmarksUpdated = { [weak self] in
             
             guard let self else { return }
             
@@ -159,14 +157,11 @@ private extension BookmarksViewController {
     
     private func configureSearchController() {
         searchController.searchResultsUpdater = self
-        searchController.delegate = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.hidesNavigationBarDuringPresentation = false
         searchController.searchBar.placeholder = "Search bookmarks"
-        searchController.searchBar.delegate = self
         
         navigationItem.searchController = searchController
-        definesPresentationContext = false
         navigationItem.hidesSearchBarWhenScrolling = false
     }
 }
@@ -234,7 +229,7 @@ extension BookmarksViewController: UITableViewDelegate, UITableViewDataSource {
 
 //MARK: - UISearchResultsUpdating, UISearchControllerDelegate, UISearchBarDelegate
 
-extension BookmarksViewController: UISearchResultsUpdating, UISearchControllerDelegate, UISearchBarDelegate {
+extension BookmarksViewController: UISearchResultsUpdating {
     
     func updateSearchResults(for searchController: UISearchController) {
         guard let searchText = searchController.searchBar.text else { return }
@@ -249,7 +244,11 @@ extension BookmarksViewController: UISearchResultsUpdating, UISearchControllerDe
         currentSearchQuery = ""
         viewModel.cancelSearch()
     }
-    
+}
+
+//MARK: - Selectors
+
+private extension BookmarksViewController {
     @objc private func performSearch() {
         viewModel.searchBookmarks(with: currentSearchQuery)
     }
