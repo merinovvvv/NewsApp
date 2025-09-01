@@ -24,6 +24,11 @@ final class NewsListViewController: UIViewController {
         
         static let categoryHeaderHeight: CGFloat = 50
         
+        static let cacheIndicatorStackViewVerticalSpacing: CGFloat = 8
+        static let cacheIndicatorStackViewHorizontalSpacing: CGFloat = 12
+        static let cacheIndicatorTopSpacing: CGFloat = 8
+        static let cacheIndicatorHorizontalSpacing: CGFloat = 16
+        
         //MARK: - Values
         
         static let zero: Int = 0
@@ -45,15 +50,11 @@ final class NewsListViewController: UIViewController {
         static let collectionViewCellHeight: CGFloat = 32
         static let minCollectionViewCellTextWidth: CGFloat = 70
         
-        //MARK: - Values for cache ui
-        
         static let cacheIndicatorContainerViewCornerRadius: CGFloat = 8
         static let cacheIndicatorStackViewSpacing: CGFloat = 8
         static let cacheIndicatorMessageLabelFontSize: CGFloat = 13
         static let cacheIndicatorIconImageViewSize: CGFloat = 20
         static let cacheIndicatorCloseButtonSize: CGFloat = 24
-        static let cacheIndicatorStackViewVerticalSpacing: CGFloat = 8
-        static let cacheIndicatorStackViewHorizontalSpacing: CGFloat = 12
         static let cacheIndicatorContainerViewTag: Int = 1001
         static let cacheIndicatorMessageLabelTag: Int = 1002
     }
@@ -243,11 +244,9 @@ private extension NewsListViewController {
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             
-            cacheIndicator.topAnchor.constraint(equalTo: categoryCollectionView.bottomAnchor, constant: 8),
-            cacheIndicator.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            cacheIndicator.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            
-            
+            cacheIndicator.topAnchor.constraint(equalTo: categoryCollectionView.bottomAnchor, constant: Constants.cacheIndicatorTopSpacing),
+            cacheIndicator.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.cacheIndicatorHorizontalSpacing),
+            cacheIndicator.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.cacheIndicatorHorizontalSpacing),
         ])
     }
     
