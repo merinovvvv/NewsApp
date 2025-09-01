@@ -10,4 +10,19 @@
         <attribute name="url" attributeType="String"/>
         <attribute name="urlToImage" optional="YES" attributeType="String"/>
     </entity>
+    <entity name="CachedArticle" representedClassName="CachedArticle" syncable="YES">
+        <attribute name="articleDescription" optional="YES" attributeType="String"/>
+        <attribute name="author" optional="YES" attributeType="String"/>
+        <attribute name="cachedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="category" optional="YES" attributeType="String"/>
+        <attribute name="content" optional="YES" attributeType="String"/>
+        <attribute name="expiresAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="page" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="position" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="publishedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="sourceName" attributeType="String"/>
+        <attribute name="title" attributeType="String"/>
+        <attribute name="url" attributeType="String"/>
+        <attribute name="urlToImage" optional="YES" attributeType="String"/>
+    </entity>
 </model>

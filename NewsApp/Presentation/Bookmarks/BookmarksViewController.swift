@@ -74,8 +74,6 @@ final class BookmarksViewController: UIViewController {
             self.tableView.reloadData()
         }
         
-        //TODO: - Same logic as in NewsListViewController
-        
         viewModel.onError = { [weak self] errorMessage in
             guard self?.presentedViewController == nil else { return }
             

@@ -44,6 +44,18 @@ final class NewsListViewController: UIViewController {
         static let collectionViewCellTextPadding: CGFloat = 20
         static let collectionViewCellHeight: CGFloat = 32
         static let minCollectionViewCellTextWidth: CGFloat = 70
+        
+        //MARK: - Values for cache ui
+        
+        static let cacheIndicatorContainerViewCornerRadius: CGFloat = 8
+        static let cacheIndicatorStackViewSpacing: CGFloat = 8
+        static let cacheIndicatorMessageLabelFontSize: CGFloat = 13
+        static let cacheIndicatorIconImageViewSize: CGFloat = 20
+        static let cacheIndicatorCloseButtonSize: CGFloat = 24
+        static let cacheIndicatorStackViewVerticalSpacing: CGFloat = 8
+        static let cacheIndicatorStackViewHorizontalSpacing: CGFloat = 12
+        static let cacheIndicatorContainerViewTag: Int = 1001
+        static let cacheIndicatorMessageLabelTag: Int = 1002
     }
     
     //MARK: - UI Properties
@@ -52,7 +64,7 @@ final class NewsListViewController: UIViewController {
     
     private let refreshControl: UIRefreshControl = UIRefreshControl()
     
-    private let searchController = UISearchController()
+    private let searchController: UISearchController = UISearchController()
     
     private lazy var categoryCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -65,6 +77,8 @@ final class NewsListViewController: UIViewController {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         return collectionView
     }()
+    
+    private var cacheIndicator: UIView!
     
     //MARK: - Init
     
@@ -84,6 +98,8 @@ final class NewsListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+        
+        cacheIndicator = setupCacheIndicator()
         
         setupBindings()
         setupUI()
@@ -126,6 +142,12 @@ final class NewsListViewController: UIViewController {
             let vc = NewsDetailViewController(viewModel: NewsDetailViewModel(article: article), bookmarksViewModel: self.bookmarksViewModel)
             DispatchQueue.main.async {
                 self.navigationController?.pushViewController(vc, animated: true)
+            }
+        }
+        
+        viewModel.onCacheStateChanged = { [weak self] state, message in
+            DispatchQueue.main.async {
+                self?.showCacheIndicator(state: .error, message: message)
             }
         }
     }
@@ -199,12 +221,14 @@ private extension NewsListViewController {
     func setupViewHierarchy() {
         view.addSubview(tableView)
         view.addSubview(categoryCollectionView)
+        view.addSubview(cacheIndicator)
     }
     
     func setupConstraints() {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         refreshControl.translatesAutoresizingMaskIntoConstraints = false
         categoryCollectionView.translatesAutoresizingMaskIntoConstraints = false
+        cacheIndicator.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             
@@ -218,6 +242,12 @@ private extension NewsListViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            
+            cacheIndicator.topAnchor.constraint(equalTo: categoryCollectionView.bottomAnchor, constant: 8),
+            cacheIndicator.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            cacheIndicator.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            
+            
         ])
     }
     
@@ -245,6 +275,8 @@ private extension NewsListViewController {
             target: self,
             action: #selector(refreshNews)
         )
+        
+        setupCacheManagementButton()
     }
     
     private func configureSearchController() {
@@ -374,5 +406,186 @@ private extension NewsListViewController {
         
         clearSearchController()
         viewModel.refreshNews()
+    }
+}
+
+//MARK: - For caching
+
+extension NewsListViewController {
+    
+    func setupCacheIndicator() -> UIView {
+        let containerView = UIView()
+        containerView.backgroundColor = .systemYellow.withAlphaComponent(0.9)
+        containerView.layer.cornerRadius = Constants.cacheIndicatorContainerViewCornerRadius
+        containerView.isHidden = true
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.spacing = Constants.cacheIndicatorStackViewSpacing
+        stackView.alignment = .center
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let iconImageView = UIImageView()
+        iconImageView.image = UIImage(systemName: "exclamationmark.triangle")
+        iconImageView.tintColor = .systemBackground
+        iconImageView.contentMode = .scaleAspectFit
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let messageLabel = UILabel()
+        messageLabel.font = .systemFont(ofSize: Constants.cacheIndicatorMessageLabelFontSize, weight: .medium)
+        messageLabel.textColor = .systemBackground
+        messageLabel.numberOfLines = .zero
+        messageLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let closeButton = UIButton(type: .system)
+        closeButton.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
+        closeButton.tintColor = .systemBackground.withAlphaComponent(0.8)
+        closeButton.addTarget(self, action: #selector(dismissCacheIndicator), for: .touchUpInside)
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        stackView.addArrangedSubview(iconImageView)
+        stackView.addArrangedSubview(messageLabel)
+        stackView.addArrangedSubview(closeButton)
+        
+        containerView.addSubview(stackView)
+        
+        NSLayoutConstraint.activate([
+            iconImageView.widthAnchor.constraint(equalToConstant: Constants.cacheIndicatorIconImageViewSize),
+            iconImageView.heightAnchor.constraint(equalToConstant: Constants.cacheIndicatorIconImageViewSize),
+            
+            closeButton.widthAnchor.constraint(equalToConstant: Constants.cacheIndicatorCloseButtonSize),
+            closeButton.heightAnchor.constraint(equalToConstant: Constants.cacheIndicatorCloseButtonSize),
+            
+            stackView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: Constants.cacheIndicatorStackViewVerticalSpacing),
+            stackView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: Constants.cacheIndicatorStackViewHorizontalSpacing),
+            stackView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -Constants.cacheIndicatorStackViewHorizontalSpacing),
+            stackView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -Constants.cacheIndicatorStackViewVerticalSpacing)
+        ])
+        
+        containerView.tag = Constants.cacheIndicatorContainerViewTag
+        messageLabel.tag = Constants.cacheIndicatorMessageLabelTag
+        
+        return containerView
+    }
+    
+    @objc private func dismissCacheIndicator() {
+        if let indicator = view.viewWithTag(Constants.cacheIndicatorContainerViewTag) {
+            UIView.animate(withDuration: 0.3, animations: {
+                indicator.alpha = .zero
+                indicator.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+            }) { _ in
+                indicator.isHidden = true
+                indicator.alpha = 1
+                indicator.transform = .identity
+            }
+        }
+    }
+    
+    func showCacheIndicator(state: CacheState, message: String?) {
+        guard let indicator = view.viewWithTag(Constants.cacheIndicatorContainerViewTag),
+              let label = indicator.viewWithTag(Constants.cacheIndicatorMessageLabelTag) as? UILabel else { return }
+        
+        switch state {
+        case .fresh:
+            UIView.animate(withDuration: 0.3) {
+                indicator.alpha = .zero
+            } completion: { _ in
+                indicator.isHidden = true
+            }
+            
+        case .expired:
+            indicator.backgroundColor = .systemOrange.withAlphaComponent(0.9)
+            label.text = message ?? "Showing cached data. Pull to refresh."
+            
+            indicator.isHidden = false
+            indicator.alpha = .zero
+            indicator.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+            
+            UIView.animate(withDuration: 0.3) {
+                indicator.alpha = 1
+                indicator.transform = .identity
+            }
+            
+        case .loading:
+            break
+            
+        case .error:
+            indicator.backgroundColor = .systemRed.withAlphaComponent(0.9)
+            label.text = message ?? "Failed to load news"
+            
+            indicator.isHidden = false
+            indicator.alpha = .zero
+            indicator.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+            
+            UIView.animate(withDuration: 0.3) {
+                indicator.alpha = 1
+                indicator.transform = .identity
+            }
+        }
+    }
+}
+
+// MARK: - Cache Management UI
+
+extension NewsListViewController {
+    
+    func setupCacheManagementButton() {
+        let cacheButton = UIBarButtonItem(
+            image: UIImage(systemName: "arrow.down.circle.fill"),
+            style: .plain,
+            target: self,
+            action: #selector(showCacheOptions)
+        )
+        
+        navigationItem.leftBarButtonItem = cacheButton
+    }
+    
+    @objc private func showCacheOptions() {
+        let actionSheet = UIAlertController(
+            title: "Cache Management",
+            message: "Manage news cache for better performance",
+            preferredStyle: .actionSheet
+        )
+        
+        actionSheet.addAction(UIAlertAction(
+            title: "Clear All Cache",
+            style: .destructive
+        ) { [weak self] _ in
+            self?.viewModel.clearCache()
+            self?.showCacheCleared()
+        })
+        
+        actionSheet.addAction(UIAlertAction(
+            title: "Clear Current Category",
+            style: .default
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            let category = NewsCategory.allCases[self.selectedCategoryIndex]
+            NewsCacheManager.shared.clearCache(for: category)
+            self.viewModel.refreshNews()
+            self.showCacheCleared()
+        })
+        
+        actionSheet.addAction(UIAlertAction(
+            title: "Cancel",
+            style: .cancel
+        ))
+        
+        if let popover = actionSheet.popoverPresentationController {
+            popover.barButtonItem = navigationItem.leftBarButtonItem
+        }
+        
+        present(actionSheet, animated: true)
+    }
+    
+    private func showCacheCleared() {
+        let alert = UIAlertController(
+            title: "Cache Cleared",
+            message: "News cache has been successfully cleared",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }

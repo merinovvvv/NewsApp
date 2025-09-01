@@ -12,6 +12,7 @@ final class NewsListViewModel {
     // MARK: - Properties
     
     private let getNewsUseCase: GetNewsUseCase
+    private let cacheManager: NewsCacheManager
     
     private(set) var articles: [Article] = []
     private var allArticles: [Article] = []
@@ -26,16 +27,23 @@ final class NewsListViewModel {
     private let minLoadInterval: TimeInterval = 2.0
     private var hasMorePages = true
     
+    private(set) var cacheState: CacheState = .fresh
+    
     // MARK: - Closures
     var onArticlesUpdated: (() -> Void)?
     var onError: ((String) -> Void)?
     var onLoadingStateChanged: ((Bool) -> Void)?
-    
+    var onCacheStateChanged: ((CacheState, String?) -> Void)?
     var onSelectArticle: ((Article) -> Void)?
     
     // MARK: - Init
-    init(getNewsUseCase: GetNewsUseCase = GetNewsUseCase()) {
+    init(getNewsUseCase: GetNewsUseCase = GetNewsUseCase(),
+         cacheManager: NewsCacheManager = .shared) {
         self.getNewsUseCase = getNewsUseCase
+        self.cacheManager = cacheManager
+        
+        // Очищаем истекший кеш при инициализации
+        cacheManager.removeExpiredCache()
     }
     
     // MARK: - Public Methods
@@ -44,6 +52,7 @@ final class NewsListViewModel {
         currentPage = 1
         articles.removeAll()
         allArticles.removeAll()
+        hasMorePages = true
         fetchNews(category: currentCategory, page: currentPage, isRefreshing: true)
     }
     
@@ -82,7 +91,15 @@ final class NewsListViewModel {
     func refreshNews() {
         isSearching = false
         currentSearchQuery = ""
+        
+        // При ручном обновлении очищаем кеш категории
+        cacheManager.clearCache(for: currentCategory)
         loadInitialNews()
+    }
+    
+    func clearCache() {
+        cacheManager.clearAllCache()
+        onCacheStateChanged?(.fresh, "Cache cleared successfully")
     }
     
     // MARK: - Search Methods
@@ -114,34 +131,60 @@ final class NewsListViewModel {
         isLoading = true
         onLoadingStateChanged?(true)
         
-        getNewsUseCase.execute(category: category, page: page) { [weak self] result in
+        cacheManager.hasCachedData(category: category, page: page) { [weak self] hasCachedData in
             guard let self else { return }
-            DispatchQueue.main.async {
-                self.isLoading = false
-                self.onLoadingStateChanged?(false)
-                
-                switch result {
-                case .success(let newArticles):
-                    if isRefreshing {
-                        self.allArticles = newArticles
-                    } else {
-                        self.allArticles.append(contentsOf: newArticles)
+            
+            self.getNewsUseCase.execute(category: category, page: page) { [weak self] result in
+                guard let self else { return }
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    self.onLoadingStateChanged?(false)
+                    
+                    switch result {
+                    case .success(let newArticles):
+                        if isRefreshing {
+                            self.allArticles = newArticles
+                        } else {
+                            self.allArticles.append(contentsOf: newArticles)
+                        }
+                        
+                        if self.isSearching {
+                            self.filterArticles()
+                        } else {
+                            self.articles = self.allArticles
+                        }
+                        
+                        self.cacheState = .fresh
+                        self.onCacheStateChanged?(.fresh, nil)
+                        
+                        self.onArticlesUpdated?()
+                        
+                        if newArticles.isEmpty {
+                            self.hasMorePages = false
+                        }
+                        
+                    case .failure(let error):
+                        if let networkError = error as? NetworkError,
+                           networkError == .noInternetConnection {
+                            
+                            if hasCachedData {
+                                self.cacheState = .expired
+                                self.onCacheStateChanged?(.expired, "Showing cached data. No internet connection.")
+                                
+                                if !self.articles.isEmpty {
+                                    self.onArticlesUpdated?()
+                                }
+                            } else {
+                                self.cacheState = .error
+                                self.onCacheStateChanged?(.error, "No internet connection and no cached data available")
+                                self.onError?("No internet connection. Please check your network.")
+                            }
+                            
+                        } else {
+                            self.cacheState = .error
+                            self.onError?(error.localizedDescription)
+                        }
                     }
-                    
-                    if self.isSearching {
-                        self.filterArticles()
-                    } else {
-                        self.articles = self.allArticles
-                    }
-                    
-                    self.onArticlesUpdated?()
-                    
-                    if newArticles.isEmpty {
-                        self.hasMorePages = false
-                    }
-                    
-                case .failure(let error):
-                    self.onError?(error.localizedDescription)
                 }
             }
         }

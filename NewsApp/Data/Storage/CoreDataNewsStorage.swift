@@ -14,8 +14,12 @@ final class CoreDataNewsStorage {
     
     private init() { }
     
+    private var appDelegate: AppDelegate {
+        UIApplication.shared.delegate as! AppDelegate
+    }
+    
     private var context: NSManagedObjectContext {
-        (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        appDelegate.persistentContainer.viewContext
     }
     
     // MARK: - Save Bookmark

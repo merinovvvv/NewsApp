@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - Network Errors
-enum NetworkError: LocalizedError {
+enum NetworkError: LocalizedError, Equatable {
     case invalidURL
     case invalidResponse
     case noData
@@ -39,6 +39,26 @@ enum NetworkError: LocalizedError {
             return "Unknown error: \(error.localizedDescription)"
         case .noInternetConnection:
             return "No internet connection"
+        }
+    }
+    
+    // MARK: - Equatable
+    static func == (lhs: NetworkError, rhs: NetworkError) -> Bool {
+        switch (lhs, rhs) {
+        case (.invalidURL, .invalidURL),
+             (.invalidResponse, .invalidResponse),
+             (.noData, .noData),
+             (.decodingError, .decodingError),
+             (.apiKeyMissing, .apiKeyMissing),
+             (.rateLimitExceeded, .rateLimitExceeded),
+             (.noInternetConnection, .noInternetConnection):
+            return true
+        case let (.serverError(lhsCode), .serverError(rhsCode)):
+            return lhsCode == rhsCode
+        case let (.unknown(lhsError), .unknown(rhsError)):
+            return lhsError.localizedDescription == rhsError.localizedDescription
+        default:
+            return false
         }
     }
 }
