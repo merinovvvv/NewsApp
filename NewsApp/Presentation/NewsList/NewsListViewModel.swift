@@ -42,7 +42,6 @@ final class NewsListViewModel {
         self.getNewsUseCase = getNewsUseCase
         self.cacheManager = cacheManager
         
-        // Очищаем истекший кеш при инициализации
         cacheManager.removeExpiredCache()
     }
     
@@ -92,7 +91,6 @@ final class NewsListViewModel {
         isSearching = false
         currentSearchQuery = ""
         
-        // При ручном обновлении очищаем кеш категории
         cacheManager.clearCache(for: currentCategory)
         loadInitialNews()
     }
