@@ -9,9 +9,9 @@ import Foundation
 
 final class BookmarksRepositoryImpl: BookmarksRepositoryProtocol {
     
-    private let storage: CoreDataNewsStorage
+    private let storage: NewsStorageProtocol
     
-    init(storage: CoreDataNewsStorage = .shared) {
+    init(storage: NewsStorageProtocol = CoreDataNewsStorage.shared) {
         self.storage = storage
     }
     

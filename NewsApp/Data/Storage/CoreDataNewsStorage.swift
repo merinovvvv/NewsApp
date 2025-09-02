@@ -8,7 +8,14 @@
 import UIKit
 import CoreData
 
-final class CoreDataNewsStorage {
+protocol NewsStorageProtocol {
+    func saveBookmark(article: Article, completion: @escaping (Result<Void, StorageError>) -> Void)
+    func removeBookmark(article: Article, completion: @escaping (Result<Void, StorageError>) -> Void)
+    func isBookmarked(article: Article, completion: @escaping (Result<Bool, StorageError>) -> Void)
+    func getAllBookmarks(completion: @escaping (Result<[Article], StorageError>) -> Void)
+}
+
+final class CoreDataNewsStorage: NewsStorageProtocol {
     
     static let shared: CoreDataNewsStorage = CoreDataNewsStorage()
     

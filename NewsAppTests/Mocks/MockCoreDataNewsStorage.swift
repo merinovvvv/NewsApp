@@ -8,7 +8,7 @@
 @testable import NewsApp
 
 // MARK: - Mock Core Data Storage
-final class MockCoreDataNewsStorage {
+final class MockCoreDataNewsStorage: NewsStorageProtocol {
     private var bookmarkedArticles: [Article] = []
     var shouldReturnError = false
     var errorToReturn: StorageError = .saveFailed

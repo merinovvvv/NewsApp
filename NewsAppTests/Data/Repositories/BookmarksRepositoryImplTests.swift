@@ -16,8 +16,7 @@ final class BookmarksRepositoryImplTests: XCTestCase {
     override func setUp() {
         super.setUp()
         mockStorage = MockCoreDataNewsStorage()
-        // Note: In real implementation, you would need to inject the mock storage
-        sut = BookmarksRepositoryImpl()
+        sut = BookmarksRepositoryImpl(storage: mockStorage)
     }
     
     override func tearDown() {
