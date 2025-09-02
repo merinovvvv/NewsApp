@@ -18,6 +18,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         window.rootViewController = MainTabBarController()
         self.window = window
+        
+        ThemeManager.shared.setupInitialTheme()
+        
         window.makeKeyAndVisible()
     }
 }

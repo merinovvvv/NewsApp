@@ -12,7 +12,7 @@ enum APIConfiguration {
     static let scheme = "https"
     static let host = "newsapi.org"
     static let basePath = "/v2"
-    static let apiKey = "f1c1d76e47524fbfb392f6d1fb774feb"
+    static let apiKey = "a3ad2bcbab7a41eea6da776b5da4db2a"
     static let defaultCountry = "us"
     static let pageSize = 20
 }

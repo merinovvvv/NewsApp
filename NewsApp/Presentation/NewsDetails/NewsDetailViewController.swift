@@ -225,7 +225,7 @@ private extension NewsDetailViewController {
             bookmarkButton.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             bookmarkButton.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
             bookmarkButton.heightAnchor.constraint(equalToConstant: Constants.buttonHeight),
-            bookmarkButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Constants.verticalSpacing)
+            bookmarkButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -2 * Constants.verticalSpacing)
         ])
     }
     

@@ -148,7 +148,7 @@ final class NewsListViewController: UIViewController {
         
         viewModel.onCacheStateChanged = { [weak self] state, message in
             DispatchQueue.main.async {
-                self?.showCacheIndicator(state: .error, message: message)
+                self?.showCacheIndicator(state: state, message: message)
             }
         }
     }
