@@ -12,12 +12,12 @@ final class NewsRepositoryImpl: NewsRepositoryProtocol {
     // MARK: - Properties
     
     private let apiService: NetworkServiceProtocol
-    private let cacheManager: NewsCacheManager
+    private let cacheManager: NewsCacheManagerProtocol
     
     // MARK: - Init
     
     init(apiService: NetworkServiceProtocol = NetworkService(),
-         cacheManager: NewsCacheManager = .shared) {
+         cacheManager: NewsCacheManagerProtocol = NewsCacheManager.shared) {
         self.apiService = apiService
         self.cacheManager = cacheManager
     }

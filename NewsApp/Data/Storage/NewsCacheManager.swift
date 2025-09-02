@@ -1,7 +1,17 @@
 import UIKit
 import CoreData
 
-final class NewsCacheManager {
+protocol NewsCacheManagerProtocol {
+    func cacheArticles(_ articles: [Article], category: NewsCategory, page: Int)
+    func getCachedArticles(category: NewsCategory, page: Int, completion: @escaping (([Article], Bool)?) -> Void)
+    func hasCachedData(category: NewsCategory, page: Int, completion: @escaping (Bool) -> Void)
+    func clearAllCache()
+    func clearCache(for category: NewsCategory)
+    func removeExpiredCache()
+}
+
+
+final class NewsCacheManager: NewsCacheManagerProtocol {
     
     // MARK: - Properties
     
